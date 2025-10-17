@@ -8,6 +8,7 @@ Usage:
 
 import threading
 from model_viewer import main, Live2DViewer
+from utils import split_sentence
 
 _initialized = False
 _viewer_thread = None
@@ -43,7 +44,7 @@ def init(model_name: str = "mao", timeout: float = 15.0):
         print(f"[VTuber] ✗ Échec de l'initialisation")
 
 
-def send_text(text: str):
+def send_text(texts: str):
     """
     Envoyer un texte au VTuber.
     
@@ -54,7 +55,7 @@ def send_text(text: str):
         print("[VTuber] Erreur: Appelez vtuber.init() d'abord!")
         return
     
-    Live2DViewer.send_text(text)
+    for text in split_sentence(texts): Live2DViewer.send_text(text)
 
 
 def is_ready() -> bool:

@@ -76,6 +76,7 @@ _ = irony_detector_2("Warm up test")
 print(f"cook en {time.time() - t0:.1f} secondes.\n")
 
 
+
 def get_irony_score(detector, results):
     """Extrait le score d'ironie d'un détecteur."""
     for result in results:

@@ -8,12 +8,8 @@ import time
 vtuber.init()
 
 
-vtuber.send_text("i love you")
-start = time.time()
-vtuber.send_text("i hate you")
-print(f"Temps écoulé: {time.time() - start:.2f} secondes")
+vtuber.send_text("I hate you. But i love you!!! Do you know that yesturday i get it by a car? Seriously can you imagine that??? Mo one have mercy in this world.")
 
-# IMPORTANT
 try:
     while True:
         time.sleep(1)
