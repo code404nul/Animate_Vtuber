@@ -6,3 +6,4 @@ The goal is to do a animated vtuber, on can answser like a chatbot, without any 
 
 Currently the model can have expression with a sentence. It's work pretty well but there is no voice and no LLM... 
 
+supprimer la politique et les message vulgaire et supprimer les inclustion de pseudo

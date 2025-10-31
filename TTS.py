@@ -16,7 +16,7 @@ def download_full_directory():
     print(f"Fichiers téléchargés dans : {local_dir}")
     return local_dir
 
-def synthesize_audio(voice, text):
+def synthesize_audio(voice, text, file_path = "output.wav", play_audio = False):
     """
     Synthétise du texte en audio avec Piper et sauvegarde avec pydub
     
@@ -30,21 +30,19 @@ def synthesize_audio(voice, text):
         AudioSegment: L'objet audio créé
     """
     print(f"Synthèse en cours : '{text}'")
-    temp_file = "temp_piper_output.wav"
     
-    with wave.open(temp_file, "wb") as wav_file:
+    with wave.open(file_path, "wb") as wav_file:
         voice.synthesize_wav(text, wav_file)
     
-    audio = AudioSegment.from_wav(temp_file)
-    os.remove(temp_file)
+    audio = AudioSegment.from_wav(file_path)
     
     duration = len(audio) / 1000.0 
     print(f"  Sample rate : {audio.frame_rate} Hz")
     print(f"  Durée : {duration:.2f} secondes")
     
-    play(audio)
-    
-    return audio
+    return (audio, duration)
+
+def play_audio(audio): play(audio)
 
 def init_model_TTS(): return PiperVoice.load("models/fr/fr_FR/upmc/medium/fr_FR-upmc-medium.onnx")
 
