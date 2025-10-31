@@ -1,17 +1,18 @@
-"""
-Exemple d'utilisation du VTuber - Ultra simple.
-"""
-
 import vtuber
 import time
 
+
 vtuber.init()
+time.sleep(2)
 
 
-vtuber.send_text("I hate you. But i love you!!! Do you know that yesturday i get it by a car? Seriously can you imagine that??? Mo one have mercy in this world.")
+vtuber.send_text("Oups, j'ai laisser le bébé dans le micro onde ! UWU")
+time.sleep(3)
 
+
+print("VTuber actif - Appuyez sur Ctrl+C pour quitter")
 try:
     while True:
         time.sleep(1)
 except KeyboardInterrupt:
-    print("\nBye!")
+    print("\\nArrêt du VTuber...")

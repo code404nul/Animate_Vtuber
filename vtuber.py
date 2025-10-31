@@ -22,7 +22,8 @@ def init(model_name: str = "mao", timeout: float = 15.0):
         model_name: Nom du modèle à charger
         timeout: Temps d'attente maximum (secondes)
     """
-    global _initialized, _viewer_thread
+    global _initialized, _viewer_thread, _model_tts
+    
     
     if _initialized:
         print("[VTuber] Déjà initialisé")
@@ -55,7 +56,8 @@ def send_text(texts: str):
         print("[VTuber] Erreur: Appelez vtuber.init() d'abord!")
         return
     
-    for text in split_sentence(texts): Live2DViewer.send_text(text)
+    for text in split_sentence(texts): 
+        Live2DViewer.send_text(text)
 
 
 def is_ready() -> bool:

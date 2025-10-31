@@ -2,18 +2,22 @@
 
 import math
 import time
-import sys
 import threading
 import queue
 from dataclasses import dataclass
 from typing import Optional, ClassVar
+import os
 
 import pygame
 from pygame.locals import DOUBLEBUF, OPENGL
 
 import live2d.v3 as live2d
+from live2d.v3 import StandardParams
+from live2d.utils.lipsync import WavHandler
+
 from utils.manage_model import ModelManager
 from utils.get_emotion import corresp_emotion
+from utils import lenght_to_duration
 
 
 @dataclass
@@ -209,9 +213,15 @@ class Live2DViewer:
         
         # Cooldown optimisé pour les expressions externes
         self.last_expression_time = 0
-        self.expression_cooldown = 0.3  # Réduit de 2.0 à 0.3 secondes
-        self.external_expression_cooldown = 0.1  # Cooldown minimal pour appels externes
+        self.last_expression_duration = 0
+        self.expression_cooldown = 2
+        self.external_expression_cooldown = 1
         self.pending_expression = None
+        
+        # Audio & LipSync
+        self.wavHandler = None
+        self.lipSyncN = 3
+        self.audioPlayed = False
         
     @classmethod
     def get_instance(cls) -> Optional['Live2DViewer']:
@@ -261,6 +271,34 @@ class Live2DViewer:
             print(f"[External] Queue externe pleine, emotion ignorée: '{emotion_id}'")
             return False
 
+    def on_start_motion_callback(self, group: str, no: int):
+        """Callback appelé au démarrage d'une motion - GÈRE LE LIPSYNC"""
+        print(f"\n=== 🎬 MOTION START CALLBACK ===")
+        print(f"Groupe: {group}, No: {no}")
+        
+        audioPath = "output.wav"
+        print(f"Chemin audio: {os.path.abspath(audioPath)}")
+        print(f"Fichier existe: {os.path.exists(audioPath)}")
+        
+        if os.path.exists(audioPath):
+            try:
+                pygame.mixer.music.load(audioPath)
+                pygame.mixer.music.play()
+                print("✓ Audio chargé et lancé")
+                
+                self.wavHandler.Start(audioPath)
+                print("✓ WavHandler démarré pour lip sync")
+            except Exception as e:
+                print(f"✗ Erreur callback: {e}")
+        else:
+            print(f"✗ Fichier audio introuvable!")
+            wav_files = [f for f in os.listdir('.') if f.endswith('.wav')]
+            print(f"Fichiers WAV disponibles: {wav_files}")
+    
+    def on_finish_motion_callback(self):
+        """Callback appelé à la fin d'une motion"""
+        print("🏁 Motion terminée")
+
     def initialize(self) -> None:
         """Initialize pygame, Live2D, and load the model."""
         with self._lock:
@@ -284,6 +322,9 @@ class Live2DViewer:
 
         self._load_model()
         
+        # Initialiser le WavHandler
+        self.wavHandler = WavHandler()
+        
         # Démarrer les threads après l'initialisation du modèle
         self.emotion_processor.start()
         self.input_reader.start()
@@ -297,6 +338,7 @@ class Live2DViewer:
         print("- I/U: Zoomer/Dézoomer")
         print("- R: Réinitialiser")
         print("- E: Changer d'expression")
+        print("- SPACE: Tester l'audio + lip sync")
         print("- Tapez du texte dans la console pour changer l'expression")
         print("\nAPI externe (rapide):")
         print("  Live2DViewer.send_text('texte')  # Passe par corresp_emotion")
@@ -304,6 +346,41 @@ class Live2DViewer:
         print(f"\nExpressions disponibles: {self.expressions}")
         print("- Ctrl+C ou fermez la fenêtre pour quitter")
         print("====================================")
+
+    def update_wav_handler(self):
+        """Met à jour le lip sync basé sur l'audio"""
+        if self.wavHandler.Update():
+            rms_value = self.wavHandler.GetRms()
+            mouth_value = rms_value * self.lipSyncN
+            self.model.SetParameterValue(StandardParams.ParamMouthOpenY, mouth_value)
+            # DEBUG: décommenter pour voir les valeurs
+            # print(f"🎤 RMS: {rms_value:.4f} | Bouche: {mouth_value:.4f}")
+        else:
+            # Remettre la bouche à zéro quand pas d'audio
+            if not pygame.mixer.music.get_busy():
+                self.model.SetParameterValue(StandardParams.ParamMouthOpenY, 0.0)
+
+    def play_sound(self):
+        """Test manuel de l'audio + lip sync"""
+        audioPath = "output.wav"
+        print(f"\n=== 🔊 TEST AUDIO MANUEL ===")
+        print(f"Chemin: {os.path.abspath(audioPath)}")
+        print(f"Existe: {os.path.exists(audioPath)}")
+        
+        if os.path.exists(audioPath):
+            try:
+                pygame.mixer.music.load(audioPath)
+                pygame.mixer.music.play()
+                print("✓ Audio chargé et lancé")
+                
+                self.wavHandler.Start(audioPath)
+                print("✓ WavHandler démarré pour lip sync")
+            except Exception as e:
+                print(f"✗ Erreur: {e}")
+        else:
+            print(f"✗ Fichier introuvable!")
+            wav_files = [f for f in os.listdir('.') if f.endswith('.wav')]
+            print(f"Fichiers WAV trouvés: {wav_files}")
 
     def _load_model(self) -> None:
         """Load and configure the Live2D model."""
@@ -319,12 +396,21 @@ class Live2DViewer:
 
         self.model.Resize(self.config.width, self.config.height)
         self.model.SetAutoBlinkEnable(True)
-        self.model.SetAutoBreathEnable(True)
+        self.model.SetAutoBreathEnable(False)  # Désactivé pour éviter conflits
         
         self.part_ids = self.model.GetPartIds()
         
         self._log_model_info()
-        self.model.StartRandomMotion("TapBody", 300, None, None)
+        
+        # 🔥 CORRECTION PRINCIPALE : Enregistrer les callbacks !
+        print("\n🔧 Enregistrement des callbacks de motion...")
+        self.model.StartRandomMotion(
+            "TapBody", 
+            300, 
+            self.on_start_motion_callback,  # ← START callback
+            self.on_finish_motion_callback   # ← FINISH callback
+        )
+        print("✓ Callbacks enregistrés\n")
 
     def _log_model_info(self) -> None:
         """Log model parameters and information."""
@@ -336,16 +422,15 @@ class Live2DViewer:
 
     def _check_threading_inputs(self) -> None:
         """Check for inputs from all sources (optimized)."""
-        # Vérifier la queue externe (prioritaire) - traiter plusieurs messages par frame
+        # Vérifier la queue externe (prioritaire)
         processed_count = 0
-        max_per_frame = 3  # Traiter jusqu'à 3 messages par frame
+        max_per_frame = 3
         
         while processed_count < max_per_frame:
             try:
                 data = self._external_queue.get_nowait()
                 processed_count += 1
                 
-                # Message avec emotion_id direct (le plus rapide)
                 if isinstance(data, dict) and data.get('direct'):
                     emotion_id = data.get('emotion_id')
                     if emotion_id:
@@ -353,7 +438,6 @@ class Live2DViewer:
                         self._apply_expression_fast(emotion_id, priority=True)
                     continue
                 
-                # Message avec texte à traiter
                 if isinstance(data, dict):
                     text = data.get('text')
                     priority = data.get('priority', False)
@@ -361,7 +445,6 @@ class Live2DViewer:
                         print(f"[Main] Texte externe reçu: '{text}' (priority={priority})")
                         self.emotion_processor.submit_text(text)
                 else:
-                    # Ancien format (string direct)
                     print(f"[Main] Texte externe reçu: '{data}'")
                     self.emotion_processor.submit_text(data)
                     
@@ -384,7 +467,6 @@ class Live2DViewer:
         
         print(f"[Main] Résultat reçu pour '{text}': {emotion_id}")
         
-        # Appliquer l'expression si valide
         if emotion_id and emotion_id in self.expressions:
             self._apply_expression_fast(emotion_id, priority=False)
         else:
@@ -395,24 +477,15 @@ class Live2DViewer:
     def _apply_expression_fast(self, expression_id: str, priority: bool = False) -> bool:
         """
         Appliquer une expression avec cooldown optimisé.
-        
-        Args:
-            expression_id: L'ID de l'expression
-            priority: Si True, utilise le cooldown minimal
-            
-        Returns:
-            True si l'expression a été appliquée, False sinon
         """
         current_time = time.time()
         cooldown = self.external_expression_cooldown if priority else self.expression_cooldown
         
-        # Vérifier le cooldown
         if current_time - self.last_expression_time < cooldown:
             remaining = cooldown - (current_time - self.last_expression_time)
             print(f"[Main] Cooldown actif: attendez {remaining:.2f}s")
             return False
         
-        # Appliquer l'expression
         try:
             self.model.ResetExpressions()
             self.model.AddExpression(expression_id)
@@ -432,8 +505,8 @@ class Live2DViewer:
         transform_map = {
             pygame.K_LEFT: ('dx', -0.1),
             pygame.K_RIGHT: ('dx', 0.1),
-            pygame.K_UP: ('dy', 0.1),
-            pygame.K_DOWN: ('dy', -0.1),
+            pygame.K_o: ('dy', 0.1),
+            pygame.K_l: ('dy', -0.1),
             pygame.K_i: ('scale', 0.1),
             pygame.K_u: ('scale', -0.1),
         }
@@ -442,6 +515,9 @@ class Live2DViewer:
             attr, delta = transform_map[key]
             setattr(self.transform, attr, getattr(self.transform, attr) + delta)
             print(f"Transform: {attr} = {getattr(self.transform, attr):.2f}")
+        
+        elif key == pygame.K_SPACE:
+            self.play_sound()
         
         elif key == pygame.K_r:
             self._reset_model()
@@ -523,7 +599,7 @@ class Live2DViewer:
         while self.running:
             frame_count += 1
             
-            # Vérifier les inputs des threads (non-bloquant)
+            # Vérifier les inputs des threads
             self._check_threading_inputs()
             
             # Traiter les événements pygame
@@ -532,8 +608,13 @@ class Live2DViewer:
             if not self.running:
                 break
             
-            # Appliquer les transformations et mises à jour
+            # Appliquer les transformations
             self._apply_transformations()
+            
+            # 🔥 MISE À JOUR DU LIP SYNC (crucial!)
+            self.update_wav_handler()
+            
+            # Mise à jour du modèle
             self.model.Update()
             self._render_highlighted_part()
             
@@ -550,19 +631,15 @@ class Live2DViewer:
         """Cleanup resources and stop threads."""
         print("[Main] Nettoyage en cours...")
         
-        # Arrêter les threads en premier
         self.emotion_processor.stop()
         self.input_reader.stop()
         
-        # Réinitialiser le singleton
         with self._lock:
             Live2DViewer._instance = None
             Live2DViewer._initialized.clear()
         
-        # Attendre un peu pour que les threads se terminent proprement
         time.sleep(0.2)
         
-        # Nettoyer les ressources pygame et Live2D
         try:
             live2d.dispose()
         except Exception as e:
@@ -578,7 +655,7 @@ class Live2DViewer:
 
 def main():
     """Entry point for the Live2D viewer."""
-    model_manager = ModelManager("mao")
+    model_manager = ModelManager("llny")
     viewer = Live2DViewer(model_manager)
 
     try:

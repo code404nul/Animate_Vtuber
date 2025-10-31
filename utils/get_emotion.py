@@ -4,6 +4,7 @@ from utils.get_feeling import predict_with_detection as emotion_analyzer
 from random import choice
 import time
 
+"""
 if torch.cuda.is_available():
     device = 0  # Premier GPU
     device_name = torch.cuda.get_device_name(0)
@@ -13,6 +14,9 @@ if torch.cuda.is_available():
 else:
     device = -1
     print("⚠️ Aucun GPU détecté, exécution sur CPU.\n")
+"""
+
+device = -1
 
 POST_IRONY = {
     'joy': -0.7,  # L'ironie inverse souvent la joie
@@ -162,34 +166,34 @@ def corresp_emotion(text):
     emotions = analyse_texte(text)
     max_emotion = max(emotions, key=emotions.get)
     expression = {
-    'approval': 'happy/IDLE',
-    'neutral': 'happy/IDLE1',
-    'realization': 'surpirse/embarrased',
-    'optimism': 'impressed',
-    'admiration': 'impressed',
-    'pride': 'impressed',
-    'relief': 'happy/IDLE',
-    'curiosity': 'surpirse/embarrased',
-    'joy': 'happy/IDLE',
-    'amusement': 'happy/IDLE',
-    'annoyance': 'angry',
-    'desire': 'blush',
-    'excitement': 'impressed',
-    'remorse': 'sad',
-    'surprise': 'surpirse/embarrased',
-    'anger': 'angry',
-    'caring': 'blush',
-    'confusion': 'surpirse/embarrased',
-    'disappointment': 'sad',
-    'disapproval': 'angry',
-    'disgust': 'angry',
-    'embarrassment': 'blush',
-    'fear': 'surpirse/embarrased',
-    'gratitude': 'impressed',
-    'grief': 'sad',
-    'love': 'blush',
-    'nervousness': 'surpirse/embarrased',
-    'sadness': 'sad'
+    "joy": "idle",
+    "excitement": "wow",
+    "approval": "make_lauft",
+    "gratitude": "love",
+    "admiration": "wow",
+    "realization": "wow",
+    "relief": "plaisir",
+    "desire": "love",
+    "sadness": "triste+++",
+    "curiosity": "studieux",
+    "optimism": "idle1",
+    "neutral": "idle",
+    "amusement": "make_lauft",
+    "anger": "angry-iritation",
+    "annoyance": "angry-iritation",
+    "caring": "love",
+    "confusion": "tete_noir",
+    "disappointment": "sad",
+    "disapproval": "tete_noir",
+    "disgust": "tete_noir",
+    "embarrassment": "blush",
+    "fear": "tete_noir",
+    "grief": "triste+++",
+    "love": "love",
+    "nervousness": "blush",
+    "pride": "idle1",
+    "remorse": "sad",
+    "surprise": "wow"
     }[max_emotion]
     
     return choice(expression) if isinstance(expression, list) else expression

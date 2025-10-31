@@ -1,3 +1,4 @@
+from math import sqrt
 import re 
 
 def __init__(self): pass
@@ -22,3 +23,7 @@ def split_sentence(texte, ponctuations=None):
         phrases_completes.append(phrases[-1].strip())
     
     return phrases_completes
+
+def lenght_to_duration(text: str, min = 0.7) -> float:
+
+    return sqrt(len(text)) * 0.5 + min

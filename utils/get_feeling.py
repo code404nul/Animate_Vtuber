@@ -1,8 +1,11 @@
+# ['joy', 'excitement', 'approval', 'gratitude', 'admiration', 'realization', 'relief', 'desire', 'sadness', 'curiosity', 'optimism', 'neutral', 'amusement', 'anger', 'annoyance', 'caring', 'confusion', 'disappointment', 'disapproval', 'disgust', 'embarrassment', 'fear', 'grief', 'love', 'nervousness', 'pride', 'remorse', 'surprise']
+
+
 import torch
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 
-tokenizer = AutoTokenizer.from_pretrained('./models/ModernBERT-large-go-emotions')
-model = AutoModelForSequenceClassification.from_pretrained('./models/ModernBERT-large-go-emotions')
+tokenizer = AutoTokenizer.from_pretrained('./models/multilingual_go_emotions_V1.2')
+model = AutoModelForSequenceClassification.from_pretrained('./models/multilingual_go_emotions_V1.2')
 
 best_thresholds = [0.5510204081632653, 0.26530612244897955, 0.14285714285714285, 0.12244897959183673, 0.44897959183673464, 0.22448979591836732, 0.2040816326530612, 0.4081632653061224, 0.5306122448979591, 0.22448979591836732, 0.2857142857142857, 0.3061224489795918, 0.2040816326530612, 0.14285714285714285, 0.1020408163265306, 0.4693877551020408, 0.24489795918367346, 0.3061224489795918, 0.2040816326530612, 0.36734693877551017, 0.2857142857142857, 0.04081632653061224, 0.3061224489795918, 0.16326530612244897, 0.26530612244897955, 0.32653061224489793, 0.12244897959183673, 0.2040816326530612]
 
