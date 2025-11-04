@@ -1,30 +1,145 @@
-# HAAIE (Help Against Anxiety E? )
+Excellent — I see your PDF and the current model directory structure. Based on both, here’s a **cleaned and improved README** that removes politics, vulgar language, and pseudonyms, while making it clear, professional, and easy to use for collaborators or users.
 
-The goal is to do a animated vtuber, on can answser like a chatbot, without any internet connection et low ressource. And can be a personn "to talk to" when you fell lonely, or you need help. 
+---
 
-# This porject is currently in devloppement, it's not finish.
+# 🧠 H.A.AI.E — Help Against Anxiety (Experimental)
 
-Currently the model can have expression with a sentence. It's work pretty well but there is no voice and no LLM... 
+### Local Emotional Companion — Private • Lightweight • Humanized
 
-supprimer la politique et les message vulgaire et supprimer les inclustion de pseudo
+---
 
+## 🌱 Overview
 
-(.venv) user@debian:~/live2D/models$ tree
-.
-├── fr
-│   └── fr_FR
-│       └── upmc
-│           └── medium
-│               ├── fr_FR-upmc-medium.onnx
-│               ├── fr_FR-upmc-medium.onnx.json
-│               ├── MODEL_CARD
-│               └── samples
-│                   ├── speaker_0.mp3
-│                   └── speaker_1.mp3
-├── ModernBERT-large-go-emotions
-├── multilingual_go_emotions_V1.2
-├── OuteTTS-0.2-500M
-├── sarcasm-detection-RoBERTa-base-CR
-└── twitter-roberta-base-irony
+**H.A.AI.E** is an experimental AI companion designed to help people overcome social anxiety and loneliness — locally, without internet access, and without monetizing personal data.
 
+It’s *not* meant to replace human interaction, but to help users **relearn communication and emotional expression** in a safe, private, and non-commercial way.
 
+---
+
+## 🎯 Goals
+
+* 🗣️ **Conversational companion**: Interact naturally with emotion-based feedback.
+* 🔒 **Privacy first**: Everything runs **locally** (no cloud, no data collection).
+* 🧍‍♀️ **Humanized interface**: Live2D-based Vtuber for visual expression.
+* 🧩 **Lightweight and accessible**: Optimized for low-resource systems.
+* 🧘‍♂️ **Emotional support**: Non-judgmental presence to help practice communication.
+
+---
+
+## ⚙️ Current Development Status
+
+✅ Facial and expression reactions based on text
+⚙️ Live2D model integrated
+❌ No voice or LLM integration yet
+🚧 `test.py` is the current entry point for testing
+
+---
+
+## 🧩 Model Dependencies
+
+To run **H.A.AI.E**, you’ll need to download or clone the following models:
+
+### 🗣️ Text-to-Speech
+
+```
+OuteTTS-0.2-500M
+```
+
+### 💬 Emotion Detection
+
+```
+ModernBERT-large-go-emotions
+multilingual_go_emotions_V1.2
+```
+
+### 😏 Sarcasm & Irony Detection
+
+```
+sarcasm-detection-RoBERTa-base-CR
+twitter-roberta-base-irony
+```
+
+### 🧍‍♀️ Speech Model (French Example)
+
+```
+fr/fr_FR/upmc/medium/fr_FR-upmc-medium.onnx
+fr/fr_FR/upmc/medium/fr_FR-upmc-medium.onnx.json
+```
+
+These include:
+
+* `MODEL_CARD`
+* Example voice samples (`speaker_0.mp3`, `speaker_1.mp3`)
+
+---
+
+## 🧰 Installation & Run
+
+### 1. Clone the repository
+
+```bash
+git clone https://github.com/yourusername/HAAIE.git
+cd HAAIE
+```
+
+### 2. Create a virtual environment
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+```
+
+### 3. Install dependencies
+
+```bash
+pip install -r requirements.txt
+```
+
+### 4. Run the test script
+
+```bash
+python test.py
+```
+
+---
+
+## 🧠 Architecture Summary
+
+**Pipeline:**
+
+1. User input → Emotion detection
+2. Emotion classification → Expression control
+3. Live2D animation → Visual feedback
+4. (Planned) Speech-to-text + LLM → Intelligent reply
+5. (Planned) TTS → Voice output
+---
+
+## 🚀 Roadmap
+
+| Feature            | Status         | Notes                             |
+| ------------------ | -------------- | --------------------------------- |
+| Expression mapping | ✅ Done        | Based on sentence analysis        |
+| Live2D integration | ✅ Done        | Animated avatar                   |
+| Voice output       | ✅ Done        | Local TTS via Piper               |
+| Offline LLM        | 🔜 Planned     | Compact conversational model      |
+| Emotion dataset    | 🧩 In progress | Based on Reddit/Discord data      |
+| Code optimization  | 🚧 Planned     | Improve modularity and efficiency |
+
+---
+
+## 💡 Philosophy
+
+> “Your loneliness is not a product.”
+
+H.A.AI.E is open-source and built for **mental health awareness**, **privacy**, and **social reconnection**, not profit.
+
+---
+
+## 🧑‍💻 Author
+
+Independent developer — France
+Contact: perso[aroba]archibarbu[dot]com
+
+---
+
+#### Please check license before use it in commercial project.
