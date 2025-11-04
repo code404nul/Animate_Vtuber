@@ -5,10 +5,11 @@ Usage:
     vtuber.init()
     vtuber.send_text("hello")
 """
-
-import threading
 from model_viewer import main, Live2DViewer
 from utils import split_sentence
+from long_term_memory.memory_manager import *
+
+import threading
 
 _initialized = False
 _viewer_thread = None
@@ -58,6 +59,7 @@ def send_text(texts: str):
     
     for text in split_sentence(texts): 
         Live2DViewer.send_text(text)
+        add_new_memory(text)
 
 
 def is_ready() -> bool:

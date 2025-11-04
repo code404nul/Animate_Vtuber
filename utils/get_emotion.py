@@ -1,6 +1,8 @@
 from utils.config_manager import device
 from transformers import pipeline
 from utils.get_feeling import predict_with_detection as emotion_analyzer
+
+from math import tanh
 from random import choice
 import time
 
@@ -149,11 +151,89 @@ def analyse_texte(texte: str, seuil_ironie: float = 0.5, mode: str = "strict"):
     
     return emotion_dict
 
+def higgest_emotion(text):
+    emotions = analyse_texte(text)
+    return max(emotions, key=emotions.get)
+    
+
+def index_emotionnal_charge(d):
+    emotion_weights = {
+        "admiration": 0.3,
+        "amusement": 0.35,
+        "anger": -1,
+        "annoyance": -0.4,
+        "approval": 0.4,
+        "caring": 0.45,
+        "confusion": -0.2,
+        "curiosity": 0.3,
+        "desire": 0.9,
+        "disappointment": -0.5,
+        "disapproval": -0.6,
+        "disgust": -0.65,
+        "embarrassment": -0.3,
+        "excitement": 0.6,
+        "fear": -0.6,
+        "gratitude": 0.5,
+        "grief": -0.8,
+        "joy": 1,
+        "love": 1.0,
+        "nervousness": -0.4,
+        "optimism": 0.8,
+        "pride": 0.4,
+        "realization": 0.4,
+        "relief": 0.5,
+        "remorse": -0.5,
+        "sadness": -0.8,
+        "surprise": 0.2,
+        "neutral": 0.0
+    }
+    
+    def compute_emotion_score(emotions, weights):
+        return sum(e["score"] * weights.get(e["label"], 0.0) for e in emotions)
+    
+    def apply_polarity_boost(score):
+        return tanh(score * 3)
+    
+    # Vérification et normalisation de la structure de données
+    if isinstance(d, str):
+        # Si d est une chaîne, retourner un score neutre
+        print(f"Warning: Expected dict/list but got string: {d}")
+        return 0.0
+    
+    # Si d est une liste d'émotions directement
+    if isinstance(d, list):
+        emotions = d
+    # Si d est un dictionnaire contenant les émotions
+    elif isinstance(d, dict):
+        # Vérifier différentes clés possibles
+        if "emotions" in d:
+            emotions = d["emotions"]
+        elif "results" in d:
+            emotions = d["results"]
+        else:
+            # Peut-être que d est déjà une seule émotion
+            if "label" in d and "score" in d:
+                emotions = [d]
+            else:
+                print(f"Warning: Unexpected dict structure: {d}")
+                return 0.0
+    else:
+        print(f"Warning: Unexpected type: {type(d)}")
+        return 0.0
+    
+    # Vérifier que emotions est bien une liste
+    if not isinstance(emotions, list):
+        print(f"Warning: emotions is not a list: {type(emotions)}")
+        return 0.0
+    
+    raw_score = compute_emotion_score(emotions, emotion_weights)
+    boosted_score = apply_polarity_boost(raw_score)
+    return boosted_score
+
 
 def corresp_emotion(text):
     """Retourne l’expression la plus proche de l’émotion dominante."""
-    emotions = analyse_texte(text)
-    max_emotion = max(emotions, key=emotions.get)
+
     expression = {
     "joy": "idle",
     "excitement": "wow",
@@ -183,7 +263,7 @@ def corresp_emotion(text):
     "pride": "idle1",
     "remorse": "sad",
     "surprise": "wow"
-    }[max_emotion]
+    }[higgest_emotion(text)]
     
     return choice(expression) if isinstance(expression, list) else expression
 
