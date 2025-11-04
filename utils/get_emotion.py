@@ -1,22 +1,11 @@
-import torch
+from utils.config_manager import device
 from transformers import pipeline
 from utils.get_feeling import predict_with_detection as emotion_analyzer
 from random import choice
 import time
 
-"""
-if torch.cuda.is_available():
-    device = 0  # Premier GPU
-    device_name = torch.cuda.get_device_name(0)
-    print(f"GPU detecter : {device_name}")
-    print(f"    - CUDA: {torch.cuda.is_available()}")
-    print(f"    - Vram : {torch.cuda.get_device_properties(0).total_memory / 1e9:.2f} Go\n")
-else:
-    device = -1
-    print("⚠️ Aucun GPU détecté, exécution sur CPU.\n")
-"""
 
-device = -1
+device = -1 if device() == "cpu" else 0
 
 POST_IRONY = {
     'joy': -0.7,  # L'ironie inverse souvent la joie
