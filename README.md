@@ -1,5 +1,3 @@
-Excellent — I see your PDF and the current model directory structure. Based on both, here’s a **cleaned and improved README** that removes politics, vulgar language, and pseudonyms, while making it clear, professional, and easy to use for collaborators or users.
-
 ---
 
 # 🧠 H.A.AI.E — Help Against Anxiety (Experimental)
