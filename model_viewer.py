@@ -19,7 +19,7 @@ from utils.manage_model import ModelManager
 from utils.get_emotion import corresp_emotion
 from utils import lenght_to_duration
 
-from TTS import init_model_TTS, synthesize_audio
+from speech.TTS import init_model_TTS, synthesize_audio
 
 @dataclass
 class ViewConfig:
