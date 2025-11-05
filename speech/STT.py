@@ -97,12 +97,13 @@ def recording_worker(audio_queue, duration, stop_event):
             if not stop_event.is_set():
                 continue
 
-def transcription_worker(audio_queue, stop_event):
+def transcription_worker(audio_queue, stop_event, callback=None):
     """
     Thread worker pour la transcription avec optimisations GPU
     Args:
         audio_queue: file d'attente contenant les audios à transcrire
         stop_event: événement pour arrêter le thread proprement
+        callback: fonction appelée avec le texte transcrit (optionnel)
     """
     mdl = load_model()
     device_name = device()  # Obtenir le nom du device
@@ -134,6 +135,10 @@ def transcription_worker(audio_queue, stop_event):
             print(f"⏱️  Temps de transcription : {end - start:.2f} secondes")
             print(f"📝 Transcription : {result['text']}\n")
             
+            # Appeler le callback si fourni
+            if callback:
+                callback(result['text'])
+            
             # Nettoyer la mémoire GPU si utilisée
             if device_name == "gpu":
                 torch.cuda.empty_cache()
@@ -147,11 +152,12 @@ def transcription_worker(audio_queue, stop_event):
             if not audio_queue.empty():
                 audio_queue.task_done()
 
-def transcription_loop(interval=30):
+def transcription_loop(interval=30, callback=None):
     """
     Boucle de transcription continue avec enregistrement et analyse en parallèle
     Args:
         interval: durée d'enregistrement (en secondes)
+        callback: fonction appelée avec le texte transcrit (optionnel)
     """
     # Queue avec taille limitée pour éviter l'accumulation
     audio_queue = Queue(maxsize=2)
@@ -166,7 +172,7 @@ def transcription_loop(interval=30):
     )
     transcriber_thread = threading.Thread(
         target=transcription_worker,
-        args=(audio_queue, stop_event),
+        args=(audio_queue, stop_event, callback),
         daemon=True,
         name="AudioTranscriber"
     )
@@ -198,46 +204,6 @@ def transcription_loop(interval=30):
             torch.cuda.empty_cache()
         
         print("✓ Arrêt terminé")
-
-def transcribe_audio(duration=30):
-    """
-    Enregistre et transcrit l'audio du microphone (mode simple, non-continu)
-    Args:
-        duration: durée d'enregistrement en secondes
-    """
-    # Enregistrer depuis le micro
-    audio = record_audio(duration=duration)
-    
-    # Vérifier la présence de parole
-    if not detect_voice_activity(audio):
-        print("⊘ Aucune parole détectée dans l'enregistrement")
-        return ""
-    
-    # Charger le modèle
-    mdl = load_model()
-    device_name = device()  # Obtenir le nom du device
-    
-    # Options optimisées
-    transcribe_options = {
-        "fp16": device_name == "gpu",
-        "language": "fr",
-        "beam_size": 5,
-        "best_of": 5,
-        "temperature": 0.0,
-    }
-    
-    # Transcrire
-    start = time()
-    result = mdl.transcribe(audio, **transcribe_options)
-    end = time()
-    
-    print(f"⏱️  Temps de transcription : {end - start:.2f} secondes")
-    print(f"📝 Transcription : {result['text']}\n")
-    
-    if device_name == "gpu":
-        torch.cuda.empty_cache()
-    
-    return result["text"]
 
 if __name__ == "__main__":
     # Mode continu avec enregistrement et transcription en parallèle
