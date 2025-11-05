@@ -4,4 +4,7 @@
 /json
 /TRAITEMENT
 /__pycache__
+/utils/__pycache__
+/long_term_memory/__pycache__
+/utils/emotion/__pycache__
 config.json
