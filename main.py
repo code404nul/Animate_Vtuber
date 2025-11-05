@@ -9,14 +9,8 @@ vtuber.init()
 print("[MAIN] Vtuber lancé.")
 
 
-
-
 def handle_transcription(text):
-    """
-    Callback function to handle transcribed text
-    Args:
-        text: The transcribed text from STT
-    """
+    "callback pour gérer la transcription reçue"
     
     is_success = vtuber.send_text(text)
 
@@ -26,11 +20,10 @@ def handle_transcription(text):
 
 thread = threading.Thread(
     target=transcription_loop,
-    args=(30, handle_transcription),
+    args=(10, handle_transcription),
     daemon=True
 )
 thread.start()
-
 
 try:
     while True:

@@ -6,8 +6,13 @@ pandas
 
 pydub
 soundfile
+
+sentencepiece
+huggingface-hub
+
 whisper
 piper-tts
+detoxify
 
 live2d-py
 opencv-python
@@ -15,7 +20,5 @@ opencv-python
 tqdm
 requests
 
-sentencepiece
-huggingface-hub
 pygame
 pyyaml

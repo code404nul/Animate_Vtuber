@@ -1,14 +1,9 @@
-"""
-Module VTuber ultra-simple.
-Usage:
-    import vtuber
-    vtuber.init()
-    vtuber.send_text("hello")
-"""
 from utils.model_viewer import main, Live2DViewer
 from utils.toxic_eval import MultilingualToxicityEvaluator
 from utils import split_sentence
 from long_term_memory.memory_manager import *
+from time import sleep
+from math import log
 
 import threading
 
@@ -53,24 +48,31 @@ def send_text(texts: str):
     Envoyer un texte au VTuber.
     
     Args:
-        text: Texte pour l'analyse émotionnelle
+        texts: Texte pour l'analyse émotionnelle
     """
+    
     if not _initialized:
         print("[VTuber] Erreur: Appelez vtuber.init() d'abord!")
         return False
     
     try:
-        _toxicity_evaluator.filter_toxic_content(texts)
-        
         if _toxicity_evaluator.filter_toxic_content(texts)["toxic"]:
             print("[VTuber] Texte détecté comme toxique. Abandon.")
             return False
         else:
-            for text in split_sentence(texts): 
+            texts = split_sentence(texts)
+
+            for text in texts:
+                # Durée logarithmique en fonction de la longueur du texte
+                length = max(len(text), 1)
+                delay = 0.7 * log(length + 1) + 0.5  # ajustable
+                sleep(delay)
+
                 Live2DViewer.send_text(text)
                 add_new_memory(text)
             return True
-    except:
+    except Exception as e:
+        print(f"[VTuber] Erreur lors de l'envoi du texte: {e}")
         return False
 
 
