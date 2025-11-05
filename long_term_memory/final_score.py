@@ -1,6 +1,6 @@
 from long_term_memory.memory_manager import get_index_by_output, get_label
 from long_term_memory.FAISS import SemanticSearchEngine
-from utils.get_emotion import higgest_emotion, index_emotionnal_charge
+from utils.emotion.get_emotion import higgest_emotion, index_emotionnal_charge
 
 import matplotlib.pyplot as plt
 import math

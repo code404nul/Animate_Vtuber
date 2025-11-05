@@ -1,5 +1,5 @@
 from utils.manage_model import ModelManager
-from utils.get_emotion import corresp_emotion
+from utils.emotion.get_emotion import corresp_emotion
 model = "mao"
 
 def init(model_name, text):

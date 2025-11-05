@@ -1,6 +1,6 @@
 from utils.config_manager import device
 from transformers import pipeline
-from utils.get_feeling import predict_with_detection as emotion_analyzer
+from utils.emotion.get_feeling import predict_with_detection as emotion_analyzer
 
 from math import tanh
 from random import choice

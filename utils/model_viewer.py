@@ -16,7 +16,7 @@ from live2d.v3 import StandardParams
 from live2d.utils.lipsync import WavHandler
 
 from utils.manage_model import ModelManager
-from utils.get_emotion import corresp_emotion
+from utils.emotion.get_emotion import corresp_emotion
 from utils import lenght_to_duration
 
 from speech.TTS import init_model_TTS, synthesize_audio

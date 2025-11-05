@@ -1,4 +1,4 @@
-from utils.get_feeling import detect_emotions
+from utils.emotion.get_feeling import detect_emotions
 from datetime import datetime
 import json
 import os

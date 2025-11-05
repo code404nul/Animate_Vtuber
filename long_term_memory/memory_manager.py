@@ -1,7 +1,7 @@
 import json
 from os.path import dirname, join, exists
 from datetime import datetime
-from utils.get_emotion import higgest_emotion, index_emotionnal_charge
+from utils.emotion.get_emotion import higgest_emotion, index_emotionnal_charge
 
 BASE_DIR = dirname(__file__)
 MEMORY_PATH = join(BASE_DIR, "memory.json")
