@@ -1,8 +1,9 @@
-import vtuber
+#import vtuber
 import time
 from speech.STT import transcription_loop
 import threading
 
+"""
 vtuber.init()
 time.sleep(2)
 
@@ -16,7 +17,7 @@ print("VTuber actif - Appuyez sur Ctrl+C pour quitter")
 """
 thread = threading.Thread(target=transcription_loop, args=(30,), daemon=True)
 thread.start()
-"""
+
 
 try:
     while True:
