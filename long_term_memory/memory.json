@@ -46,5 +46,77 @@
         "IEC": 0.0,
         "repition": 1,
         "index": 6
+    },
+    {
+        "output": "Oups, j'ai laisser le bébé dans le micro onde!",
+        "registration_time": 1762353790.413884,
+        "emotion": "embarrassment",
+        "IEC": 0.0,
+        "repition": 1,
+        "index": 7
+    },
+    {
+        "output": "UWU",
+        "registration_time": 1762353795.120098,
+        "emotion": "excitement",
+        "IEC": 0.0,
+        "repition": 1,
+        "index": 8
+    },
+    {
+        "output": "Oups, j'ai laisser le bébé dans le micro onde!",
+        "registration_time": 1762353802.531966,
+        "emotion": "embarrassment",
+        "IEC": 0.0,
+        "repition": 1,
+        "index": 9
+    },
+    {
+        "output": "Oups, j'ai laisser le bébé dans le micro onde!",
+        "registration_time": 1762357561.744577,
+        "emotion": "embarrassment",
+        "IEC": 0.0,
+        "repition": 1,
+        "index": 10
+    },
+    {
+        "output": "UWU",
+        "registration_time": 1762357562.906301,
+        "emotion": "excitement",
+        "IEC": 0.0,
+        "repition": 1,
+        "index": 11
+    },
+    {
+        "output": "Oups, j'ai laisser le bébé dans le micro onde!",
+        "registration_time": 1762357721.652626,
+        "emotion": "embarrassment",
+        "IEC": 0.0,
+        "repition": 1,
+        "index": 12
+    },
+    {
+        "output": "UWU",
+        "registration_time": 1762357722.72244,
+        "emotion": "excitement",
+        "IEC": 0.0,
+        "repition": 1,
+        "index": 13
+    },
+    {
+        "output": "Oups, j'ai laisser le bébé dans le micro onde!",
+        "registration_time": 1762358450.298022,
+        "emotion": "embarrassment",
+        "IEC": 0.0,
+        "repition": 1,
+        "index": 14
+    },
+    {
+        "output": "UWU",
+        "registration_time": 1762358451.414441,
+        "emotion": "excitement",
+        "IEC": 0.0,
+        "repition": 1,
+        "index": 15
     }
 ]

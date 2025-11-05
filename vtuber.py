@@ -5,7 +5,8 @@ Usage:
     vtuber.init()
     vtuber.send_text("hello")
 """
-from model_viewer import main, Live2DViewer
+from utils.model_viewer import main, Live2DViewer
+from utils.toxic_eval import MultilingualToxicityEvaluator
 from utils import split_sentence
 from long_term_memory.memory_manager import *
 
@@ -14,6 +15,7 @@ import threading
 _initialized = False
 _viewer_thread = None
 
+_toxicity_evaluator = MultilingualToxicityEvaluator(model_type="multilingual")
 
 def init(model_name: str = "mao", timeout: float = 15.0):
     """
@@ -55,11 +57,21 @@ def send_text(texts: str):
     """
     if not _initialized:
         print("[VTuber] Erreur: Appelez vtuber.init() d'abord!")
-        return
+        return False
     
-    for text in split_sentence(texts): 
-        Live2DViewer.send_text(text)
-        add_new_memory(text)
+    try:
+        _toxicity_evaluator.filter_toxic_content(texts)
+        
+        if _toxicity_evaluator.filter_toxic_content(texts)["toxic"]:
+            print("[VTuber] Texte détecté comme toxique. Abandon.")
+            return False
+        else:
+            for text in split_sentence(texts): 
+                Live2DViewer.send_text(text)
+                add_new_memory(text)
+            return True
+    except:
+        return False
 
 
 def is_ready() -> bool:

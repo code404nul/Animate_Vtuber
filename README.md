@@ -29,7 +29,7 @@ It’s *not* meant to replace human interaction, but to help users **relearn com
 ✅ Facial and expression reactions based on text
 ⚙️ Live2D model integrated
 ❌ No voice or LLM integration yet
-🚧 `test.py` is the current entry point for testing
+🚧 `main.py` is the current entry point for testing
 
 ---
 

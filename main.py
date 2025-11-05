@@ -9,7 +9,7 @@ time.sleep(2)
 
 vtuber.send_text("Oups, j'ai laisser le bébé dans le micro onde ! UWU")
 time.sleep(3)
-vtuber.send_text("Oups, j'ai laisser le bébé dans le micro onde !")
+print(vtuber.send_text("Je te deteste va te faire enculer bien pronfondement idiot !"))
 
 print("VTuber actif - Appuyez sur Ctrl+C pour quitter")
 
