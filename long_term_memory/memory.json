@@ -1,1 +1,402 @@
-[]
+[
+    {
+        "output": "Bonjour!",
+        "registration_time": 1762459740.812643,
+        "emotion": "neutral",
+        "IEC": 0.0,
+        "repition": 1,
+        "index": 1
+    },
+    {
+        "output": "Veuillez noter que je ne remplace pas un thérapeute professionnel.",
+        "registration_time": 1762459745.761475,
+        "emotion": "disgust",
+        "IEC": 0.0,
+        "repition": 1,
+        "index": 2
+    },
+    {
+        "output": "Si vous êtes en crise ou avez besoin d'une aide urgente",
+        "registration_time": 1762459750.679401,
+        "emotion": "neutral",
+        "IEC": 0.0,
+        "repition": 1,
+        "index": 3
+    },
+    {
+        "output": "veuillez contacter un professionnel de la santé mentale qualifié ou les services d'urgence immédiatement.",
+        "registration_time": 1762459756.566023,
+        "emotion": "caring",
+        "IEC": 0.0,
+        "repition": 1,
+        "index": 4
+    },
+    {
+        "output": "Je suis juste une IA",
+        "registration_time": 1762459760.767378,
+        "emotion": "neutral",
+        "IEC": 0.0,
+        "repition": 1,
+        "index": 5
+    },
+    {
+        "output": "prenez soin de vous!",
+        "registration_time": 1762459764.372415,
+        "emotion": "caring",
+        "IEC": 0.0,
+        "repition": 1,
+        "index": 6
+    },
+    {
+        "output": "Bonjour!",
+        "registration_time": 1762459808.403099,
+        "emotion": "neutral",
+        "IEC": 0.0,
+        "repition": 1,
+        "index": 7
+    },
+    {
+        "output": "Veuillez noter que je ne remplace pas un thérapeute professionnel.",
+        "registration_time": 1762459813.596671,
+        "emotion": "disgust",
+        "IEC": 0.0,
+        "repition": 1,
+        "index": 8
+    },
+    {
+        "output": "Si vous êtes en crise ou avez besoin d'une aide urgente",
+        "registration_time": 1762459818.334047,
+        "emotion": "neutral",
+        "IEC": 0.0,
+        "repition": 1,
+        "index": 9
+    },
+    {
+        "output": "veuillez contacter un professionnel de la santé mentale qualifié ou les services d'urgence immédiatement.",
+        "registration_time": 1762459823.968283,
+        "emotion": "caring",
+        "IEC": 0.0,
+        "repition": 1,
+        "index": 10
+    },
+    {
+        "output": "Je suis juste une IA",
+        "registration_time": 1762459827.457565,
+        "emotion": "neutral",
+        "IEC": 0.0,
+        "repition": 1,
+        "index": 11
+    },
+    {
+        "output": "prenez soin de vous!",
+        "registration_time": 1762459831.003841,
+        "emotion": "caring",
+        "IEC": 0.0,
+        "repition": 1,
+        "index": 12
+    },
+    {
+        "output": "Bonjour!",
+        "registration_time": 1762460117.344538,
+        "emotion": "neutral",
+        "IEC": 0.0,
+        "repition": 1,
+        "index": 13
+    },
+    {
+        "output": "Veuillez noter que je ne remplace pas un thérapeute professionnel.",
+        "registration_time": 1762460122.632499,
+        "emotion": "disgust",
+        "IEC": 0.0,
+        "repition": 1,
+        "index": 14
+    },
+    {
+        "output": "Si vous êtes en crise ou avez besoin d'une aide urgente",
+        "registration_time": 1762460127.752092,
+        "emotion": "neutral",
+        "IEC": 0.0,
+        "repition": 1,
+        "index": 15
+    },
+    {
+        "output": "veuillez contacter un professionnel de la santé mentale qualifié ou les services d'urgence immédiatement.",
+        "registration_time": 1762460134.070189,
+        "emotion": "caring",
+        "IEC": 0.0,
+        "repition": 1,
+        "index": 16
+    },
+    {
+        "output": "Je suis juste une IA",
+        "registration_time": 1762460137.303521,
+        "emotion": "neutral",
+        "IEC": 0.0,
+        "repition": 1,
+        "index": 17
+    },
+    {
+        "output": "prenez soin de vous!",
+        "registration_time": 1762460140.47307,
+        "emotion": "caring",
+        "IEC": 0.0,
+        "repition": 1,
+        "index": 18
+    },
+    {
+        "output": "Bonjour!",
+        "registration_time": 1762460181.819135,
+        "emotion": "neutral",
+        "IEC": 0.0,
+        "repition": 1,
+        "index": 19
+    },
+    {
+        "output": "Veuillez noter que je ne remplace pas un thérapeute professionnel.",
+        "registration_time": 1762460183.57835,
+        "emotion": "disgust",
+        "IEC": 0.0,
+        "repition": 1,
+        "index": 20
+    },
+    {
+        "output": "Si vous êtes en crise ou avez besoin d'une aide urgente",
+        "registration_time": 1762460185.141736,
+        "emotion": "neutral",
+        "IEC": 0.0,
+        "repition": 1,
+        "index": 21
+    },
+    {
+        "output": "veuillez contacter un professionnel de la santé mentale qualifié ou les services d'urgence immédiatement.",
+        "registration_time": 1762460187.042769,
+        "emotion": "caring",
+        "IEC": 0.0,
+        "repition": 1,
+        "index": 22
+    },
+    {
+        "output": "Je suis juste une IA",
+        "registration_time": 1762460187.596638,
+        "emotion": "neutral",
+        "IEC": 0.0,
+        "repition": 1,
+        "index": 23
+    },
+    {
+        "output": "prenez soin de vous!",
+        "registration_time": 1762460189.139676,
+        "emotion": "caring",
+        "IEC": 0.0,
+        "repition": 1,
+        "index": 24
+    },
+    {
+        "output": "Bonjour!",
+        "registration_time": 1762460406.810141,
+        "emotion": "neutral",
+        "IEC": 0.0,
+        "repition": 1,
+        "index": 25
+    },
+    {
+        "output": "Veuillez noter que je ne remplace pas un thérapeute professionnel.",
+        "registration_time": 1762460408.632675,
+        "emotion": "disgust",
+        "IEC": 0.0,
+        "repition": 1,
+        "index": 26
+    },
+    {
+        "output": "Si vous êtes en crise ou avez besoin d'une aide urgente",
+        "registration_time": 1762460410.568327,
+        "emotion": "neutral",
+        "IEC": 0.0,
+        "repition": 1,
+        "index": 27
+    },
+    {
+        "output": "veuillez contacter un professionnel de la santé mentale qualifié ou les services d'urgence immédiatement.",
+        "registration_time": 1762460412.02799,
+        "emotion": "caring",
+        "IEC": 0.0,
+        "repition": 1,
+        "index": 28
+    },
+    {
+        "output": "Je suis juste une IA",
+        "registration_time": 1762460412.596941,
+        "emotion": "neutral",
+        "IEC": 0.0,
+        "repition": 1,
+        "index": 29
+    },
+    {
+        "output": "prenez soin de vous!",
+        "registration_time": 1762460414.070185,
+        "emotion": "caring",
+        "IEC": 0.0,
+        "repition": 1,
+        "index": 30
+    },
+    {
+        "output": "Bonjour!",
+        "registration_time": 1762460502.03119,
+        "emotion": "neutral",
+        "IEC": 0.0,
+        "repition": 1,
+        "index": 31
+    },
+    {
+        "output": "Veuillez noter que je ne remplace pas un thérapeute professionnel.",
+        "registration_time": 1762460503.067611,
+        "emotion": "disgust",
+        "IEC": 0.0,
+        "repition": 1,
+        "index": 32
+    },
+    {
+        "output": "Si vous êtes en crise ou avez besoin d'une aide urgente",
+        "registration_time": 1762460504.037915,
+        "emotion": "neutral",
+        "IEC": 0.0,
+        "repition": 1,
+        "index": 33
+    },
+    {
+        "output": "Bonjour!",
+        "registration_time": 1762460619.876733,
+        "emotion": "neutral",
+        "IEC": 0.0,
+        "repition": 1,
+        "index": 34
+    },
+    {
+        "output": "Veuillez noter que je ne remplace pas un thérapeute professionnel.",
+        "registration_time": 1762460622.3493,
+        "emotion": "disgust",
+        "IEC": 0.0,
+        "repition": 1,
+        "index": 35
+    },
+    {
+        "output": "Si vous êtes en crise ou avez besoin d'une aide urgente",
+        "registration_time": 1762460624.087174,
+        "emotion": "neutral",
+        "IEC": 0.0,
+        "repition": 1,
+        "index": 36
+    },
+    {
+        "output": "veuillez contacter un professionnel de la santé mentale qualifié ou les services d'urgence immédiatement.",
+        "registration_time": 1762460625.849608,
+        "emotion": "caring",
+        "IEC": 0.0,
+        "repition": 1,
+        "index": 37
+    },
+    {
+        "output": "Je suis juste une IA",
+        "registration_time": 1762460626.272137,
+        "emotion": "neutral",
+        "IEC": 0.0,
+        "repition": 1,
+        "index": 38
+    },
+    {
+        "output": "prenez soin de vous!",
+        "registration_time": 1762460627.365579,
+        "emotion": "caring",
+        "IEC": 0.0,
+        "repition": 1,
+        "index": 39
+    },
+    {
+        "output": "Bonjour!",
+        "registration_time": 1762460767.514386,
+        "emotion": "neutral",
+        "IEC": 0.0,
+        "repition": 1,
+        "index": 40
+    },
+    {
+        "output": "Veuillez noter que je ne remplace pas un thérapeute professionnel.",
+        "registration_time": 1762460769.423285,
+        "emotion": "disgust",
+        "IEC": 0.0,
+        "repition": 1,
+        "index": 41
+    },
+    {
+        "output": "Si vous êtes en crise ou avez besoin d'une aide urgente",
+        "registration_time": 1762460771.577134,
+        "emotion": "neutral",
+        "IEC": 0.0,
+        "repition": 1,
+        "index": 42
+    },
+    {
+        "output": "veuillez contacter un professionnel de la santé mentale qualifié ou les services d'urgence immédiatement.",
+        "registration_time": 1762460772.849116,
+        "emotion": "caring",
+        "IEC": 0.0,
+        "repition": 1,
+        "index": 43
+    },
+    {
+        "output": "Je suis juste une IA",
+        "registration_time": 1762460773.405342,
+        "emotion": "neutral",
+        "IEC": 0.0,
+        "repition": 1,
+        "index": 44
+    },
+    {
+        "output": "prenez soin de vous!",
+        "registration_time": 1762460774.888774,
+        "emotion": "caring",
+        "IEC": 0.0,
+        "repition": 1,
+        "index": 45
+    },
+    {
+        "output": "Bonjour!",
+        "registration_time": 1762461267.606342,
+        "emotion": "neutral",
+        "IEC": 0.0,
+        "repition": 1,
+        "index": 46
+    },
+    {
+        "output": "Veuillez noter que je ne remplace pas un thérapeute professionnel.",
+        "registration_time": 1762461268.72264,
+        "emotion": "disgust",
+        "IEC": 0.0,
+        "repition": 1,
+        "index": 47
+    },
+    {
+        "output": "Si vous êtes en crise ou avez besoin d'une aide urgente",
+        "registration_time": 1762461270.284822,
+        "emotion": "neutral",
+        "IEC": 0.0,
+        "repition": 1,
+        "index": 48
+    },
+    {
+        "output": "veuillez contacter un professionnel de la santé mentale qualifié ou les services d'urgence immédiatement.",
+        "registration_time": 1762461271.48267,
+        "emotion": "caring",
+        "IEC": 0.0,
+        "repition": 1,
+        "index": 49
+    },
+    {
+        "output": "Je suis juste une IA",
+        "registration_time": 1762461271.804617,
+        "emotion": "neutral",
+        "IEC": 0.0,
+        "repition": 1,
+        "index": 50
+    }
+]

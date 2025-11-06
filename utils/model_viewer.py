@@ -1,4 +1,4 @@
-"""Live2D model viewer with interactive controls - Optimized for fast external expressions."""
+"""Live2D model viewer avec gestion synchronisée TTS + Expression."""
 
 import math
 import time
@@ -42,103 +42,152 @@ class TransformState:
     rotation_amplitude: float = 1.0
 
 
-class EmotionProcessor:
-    """Thread-safe emotion processing handler with optimized processing."""
+@dataclass
+class TTSRequest:
+    """Requête TTS avec texte et émotion."""
+    text: str
+    emotion_id: Optional[str] = None
+    priority: bool = False
+    timestamp: float = 0.0
+
+
+class TTSProcessor:
+    """
+    Processeur TTS thread-safe qui :
+    - Traite les requêtes une par une
+    - Génère l'audio
+    - Détecte l'émotion
+    - Retourne le tout ensemble
+    """
     
-    def __init__(self):
-        self.input_queue = queue.Queue(maxsize=10)
-        self.result_queue = queue.Queue(maxsize=10)
+    def __init__(self, tts_model):
+        self.tts_model = tts_model
+        self.request_queue = queue.Queue()
+        self.result_queue = queue.Queue()
         self.worker_thread = None
         self.running = False
-        self.processing_lock = threading.Lock()
         
     def start(self):
-        """Start the emotion processing thread."""
+        """Démarre le thread de traitement."""
         self.running = True
         self.worker_thread = threading.Thread(
             target=self._process_worker,
             daemon=True,
-            name="EmotionProcessorThread"
+            name="TTSProcessorThread"
         )
         self.worker_thread.start()
-        print("[EmotionProcessor] Thread démarré")
+        print("[TTSProcessor] Thread démarré")
     
     def stop(self):
-        """Stop the emotion processing thread."""
+        """Arrête le thread de traitement."""
         self.running = False
         if self.worker_thread and self.worker_thread.is_alive():
             try:
-                self.input_queue.put(None, timeout=0.1)
+                self.request_queue.put(None, timeout=0.1)
             except queue.Full:
                 pass
             self.worker_thread.join(timeout=2.0)
-        print("[EmotionProcessor] Thread arrêté")
+        print("[TTSProcessor] Thread arrêté")
     
     def _process_worker(self):
-        """Worker thread qui traite les émotions de manière asynchrone."""
-        print("[EmotionProcessor] Worker thread en cours d'exécution")
+        """Worker thread qui traite les requêtes TTS."""
+        print("[TTSProcessor] Worker en cours d'exécution")
         
         while self.running:
             try:
-                # Timeout réduit pour réactivité accrue
-                text = self.input_queue.get(timeout=0.1)
+                request = self.request_queue.get(timeout=0.1)
                 
-                if text is None:
+                if request is None:
                     break
                 
-                print(f"[EmotionProcessor] Traitement de: '{text}'")
+                print(f"[TTSProcessor] Traitement: '{request.text}'")
                 
-                with self.processing_lock:
-                    try:
-                        emotion_id = corresp_emotion(text)
-                        self.result_queue.put({
-                            'text': text,
-                            'emotion_id': emotion_id,
-                            'success': True,
-                            'timestamp': time.time()
-                        })
-                        print(f"[EmotionProcessor] Résultat: {emotion_id}")
-                    except Exception as e:
-                        print(f"[EmotionProcessor] Erreur lors du traitement: {e}")
-                        self.result_queue.put({
-                            'text': text,
-                            'emotion_id': None,
-                            'success': False,
-                            'error': str(e),
-                            'timestamp': time.time()
-                        })
+                try:
+                    # Génération de l'audio
+                    audio_path = self._text_to_file_path(request.text)
+                    audio, duration = synthesize_audio(
+                        self.tts_model, 
+                        request.text, 
+                        audio_path
+                    )
+                    
+                    # Détection de l'émotion si nécessaire
+                    if request.emotion_id is None:
+                        emotion_id = corresp_emotion(request.text)
+                    else:
+                        emotion_id = request.emotion_id
+                    
+                    # Résultat complet
+                    self.result_queue.put({
+                        'success': True,
+                        'text': request.text,
+                        'audio_path': audio_path,
+                        'duration': duration,
+                        'emotion_id': emotion_id,
+                        'timestamp': time.time()
+                    })
+                    
+                    print(f"[TTSProcessor] Terminé: audio={audio_path}, émotion={emotion_id}, durée={duration:.2f}s")
+                    
+                except Exception as e:
+                    print(f"[TTSProcessor] Erreur: {e}")
+                    self.result_queue.put({
+                        'success': False,
+                        'text': request.text,
+                        'error': str(e),
+                        'timestamp': time.time()
+                    })
                 
             except queue.Empty:
                 continue
             except Exception as e:
-                print(f"[EmotionProcessor] Erreur dans le worker: {e}")
+                print(f"[TTSProcessor] Erreur dans le worker: {e}")
     
-    def submit_text(self, text: str) -> bool:
-        """Soumettre un texte pour traitement."""
+    def _text_to_file_path(self, text: str) -> str:
+        """Génère un nom de fichier sûr à partir du texte."""
+        FORBIDDEN_CHARS = [" ", ".", "/", "\\", ":", "*", "?", '"', "<", ">", "|"]
+        safe_text = text[:50]  # Limiter la longueur
+        for char in FORBIDDEN_CHARS:
+            safe_text = safe_text.replace(char, "_")
+        return f"tts_{hash(text) & 0xFFFFFFFF}.wav"
+    
+    def submit_request(self, text: str, emotion_id: Optional[str] = None, priority: bool = False) -> bool:
+        """Soumet une requête TTS."""
         try:
-            self.input_queue.put_nowait(text)
+            request = TTSRequest(
+                text=text,
+                emotion_id=emotion_id,
+                priority=priority,
+                timestamp=time.time()
+            )
+            self.request_queue.put_nowait(request)
+            print(f"[TTSProcessor] Requête ajoutée: '{text}'")
             return True
         except queue.Full:
-            print("[EmotionProcessor] Queue pleine, texte ignoré")
+            print("[TTSProcessor] Queue pleine, requête ignorée")
             return False
     
     def get_result(self) -> Optional[dict]:
-        """Récupérer un résultat si disponible."""
+        """Récupère un résultat si disponible."""
         try:
             return self.result_queue.get_nowait()
         except queue.Empty:
             return None
+    
+    def has_pending_requests(self) -> bool:
+        """Vérifie s'il y a des requêtes en attente."""
+        return not self.request_queue.empty()
 
 
 class Live2DViewer:
-    """Interactive Live2D model viewer with threading support and singleton pattern."""
+    """Interactive Live2D model viewer avec synchronisation TTS + Expression."""
     
-    # Singleton pattern avec thread safety
+    # Singleton pattern
     _instance: ClassVar[Optional['Live2DViewer']] = None
     _lock: ClassVar[threading.Lock] = threading.Lock()
     _initialized: ClassVar[threading.Event] = threading.Event()
     
-    # Queue d'entrée externe accessible depuis n'importe où
+    # Queue d'entrée externe
     _external_queue: ClassVar[queue.Queue] = queue.Queue(maxsize=50)
 
     def __init__(self, model_manager: ModelManager, config: ViewConfig = ViewConfig()):
@@ -150,103 +199,64 @@ class Live2DViewer:
         self.current_expression_idx = 0
         self.expressions = []
         self.part_ids = []
-        self.highlighted_part_id: Optional[str] = None
         
-        # Threading components
-        self.emotion_processor = EmotionProcessor()
-        
-        # Cooldown optimisé pour les expressions externes
-        self.last_expression_time = 0
-        self.last_expression_duration = 0
-        self.expression_cooldown = 2
-        self.external_expression_cooldown = 1
-        self.pending_expression = None
-        
-        # Audio & LipSync
+        # TTS + Audio
+        self.tts_model = init_model_TTS()
+        self.tts_processor = TTSProcessor(self.tts_model)
         self.wavHandler = None
         self.lipSyncN = 3
-        self.audioPlayed = False
-
-        self.tss = init_model_TTS()
-
-        self.expression_lock = threading.Lock()
+        
+        # État de lecture actuel
+        self.current_audio_path: Optional[str] = None
+        self.current_emotion_id: Optional[str] = None
+        self.audio_start_time: Optional[float] = None
+        self.audio_duration: Optional[float] = None
+        self.is_playing: bool = False
+        
+        # UI Elements
+        self.font = None
+        self.ai_text_surface = None
 
     @classmethod
     def get_instance(cls) -> Optional['Live2DViewer']:
-        """Récupérer l'instance singleton (si elle existe)."""
+        """Récupère l'instance singleton."""
         return cls._instance
     
     @classmethod
     def wait_for_instance(cls, timeout: float = 10.0) -> Optional['Live2DViewer']:
-        """Attendre que l'instance soit initialisée."""
+        """Attend que l'instance soit initialisée."""
         if cls._initialized.wait(timeout):
             return cls._instance
         return None
     
     @classmethod
-    def send_text(cls, text: str, priority: bool = True) -> bool:
-        """
-        Méthode statique pour envoyer du texte depuis n'importe où.
-        Thread-safe et non-bloquante.
-        
-        Args:
-            text: Le texte à traiter
-            priority: Si True, utilise un cooldown réduit
-        """
-
+    def send_text(cls, text: str, priority: bool = False) -> bool:
+        """Envoie du texte depuis n'importe où."""
         try:
-            cls._external_queue.put_nowait({'text': text, 'priority': priority})
-            print(f"[External] Texte ajouté à la queue: '{text}' (priority={priority})")
+            cls._external_queue.put_nowait({
+                'text': text,
+                'priority': priority
+            })
+            print(f"[External] Texte ajouté: '{text}'")
             return True
         except queue.Full:
-            print(f"[External] Queue externe pleine, texte ignoré: '{text}'")
+            print(f"[External] Queue pleine, texte ignoré")
             return False
     
     @classmethod
-    def send_emotion_direct(cls, emotion_id: str) -> bool:
-        """
-        Envoyer directement un emotion_id sans passer par corresp_emotion.
-        Le plus rapide pour les appels externes.
-        """
+    def send_emotion_direct(cls, text: str, emotion_id: str, priority: bool = False) -> bool:
+        """Envoie du texte avec une émotion pré-définie."""
         try:
             cls._external_queue.put_nowait({
+                'text': text,
                 'emotion_id': emotion_id,
-                'direct': True,
-                'priority': True
+                'priority': priority
             })
-            print(f"[External] Emotion directe ajoutée: '{emotion_id}'")
+            print(f"[External] Texte + émotion ajoutés: '{text}' -> {emotion_id}")
             return True
         except queue.Full:
-            print(f"[External] Queue externe pleine, emotion ignorée: '{emotion_id}'")
+            print(f"[External] Queue pleine, requête ignorée")
             return False
-
-    def on_start_motion_callback(self, group: str, no: int):
-        """Callback appelé au démarrage d'une motion - GÈRE LE LIPSYNC"""
-        print(f"\n=== 🎬 MOTION START CALLBACK ===")
-        print(f"Groupe: {group}, No: {no}")
-        
-        self.audioPath = "output.wav"
-        print(f"Chemin audio: {os.path.abspath(self.audioPath)}")
-        print(f"Fichier existe: {os.path.exists(self.audioPath)}")
-        
-        if os.path.exists(self.audioPath):
-            try:
-                pygame.mixer.music.load(self.audioPath)
-                pygame.mixer.music.play()
-                print("✓ Audio chargé et lancé")
-                
-                self.wavHandler.Start(self.audioPath)
-                print("✓ WavHandler démarré pour lip sync")
-            except Exception as e:
-                print(f"✗ Erreur callback: {e}")
-        else:
-            print(f"✗ Fichier audio introuvable!")
-            wav_files = [f for f in os.listdir('.') if f.endswith('.wav')]
-            print(f"Fichiers WAV disponibles: {wav_files}")
-    
-    def on_finish_motion_callback(self):
-        """Callback appelé à la fin d'une motion"""
-        print("🏁 Motion terminée")
 
     def initialize(self) -> None:
         """Initialize pygame, Live2D, and load the model."""
@@ -265,6 +275,9 @@ class Live2DViewer:
             DOUBLEBUF | OPENGL
         )
         pygame.display.set_caption(self.config.title)
+        
+        # Créer une surface 2D pour l'overlay
+        self.overlay_surface = pygame.Surface((self.config.width, self.config.height), pygame.SRCALPHA)
 
         if live2d.LIVE2D_VERSION == 3:
             live2d.glewInit()
@@ -274,73 +287,26 @@ class Live2DViewer:
         # Initialiser le WavHandler
         self.wavHandler = WavHandler()
         
-        # Démarrer les threads après l'initialisation du modèle
-        self.emotion_processor.start()
+        # Initialiser la police pour le texte "AI"
+        self.font = pygame.font.Font(None, 48)
+        self.ai_text_surface = self.font.render("AI", True, (255, 255, 255))
+        
+        # Démarrer le processeur TTS
+        self.tts_processor.start()
+        
         # Signaler que l'instance est prête
         Live2DViewer._initialized.set()
         
-        print("=== Live2D Viewer (Mode Rapide) ===")
+        print("=== Live2D Viewer (Queue Refactorisée) ===")
         print("Contrôles:")
-        print("- Flèches: Déplacer le modèle")
-        print("- I/U: Zoomer/Dézoomer")
-        print("- R: Réinitialiser")
+        print("- SPACE: Dire 'Bonjour le monde!'")
         print("- E: Changer d'expression")
-        print("- SPACE: Tester l'audio + lip sync")
-        print("- Tapez du texte dans la console pour changer l'expression")
-        print("\nAPI externe (rapide):")
-        print("  Live2DViewer.send_text('texte')  # Passe par corresp_emotion")
-        print("  Live2DViewer.send_emotion_direct('f01')  # Direct, le plus rapide!")
-        print(f"\nExpressions disponibles: {self.expressions}")
-        print("- Ctrl+C ou fermez la fenêtre pour quitter")
-        print("====================================")
-
-    def update_wav_handler(self):
-        """Met à jour le lip sync basé sur l'audio"""
-        if self.wavHandler.Update():
-            rms_value = self.wavHandler.GetRms()
-            mouth_value = rms_value * self.lipSyncN
-            self.model.SetParameterValue(StandardParams.ParamMouthOpenY, mouth_value)
-            # DEBUG: décommenter pour voir les valeurs
-            # print(f"🎤 RMS: {rms_value:.4f} | Bouche: {mouth_value:.4f}")
-        else:
-            # Remettre la bouche à zéro quand pas d'audio
-            if not pygame.mixer.music.get_busy():
-                self.model.SetParameterValue(StandardParams.ParamMouthOpenY, 0.0)
-
-    def text_to_file_path(self, text):
-        FORBIDDEN_CHARS = [" ", ".", "/"]
-
-        for char in FORBIDDEN_CHARS:
-            text.replace(char, "")
-        return text+".wav"
-
-    def make_sound(self, text):
-        """Test manuel de l'audio + lip sync"""
-
-        self.audioPath = self.text_to_file_path(text)
-
-        audio, duration = synthesize_audio(self.tss, text, self.audioPath)
-
-        print(f"\n=== 🔊 TEST AUDIO MANUEL ===")
-        print(f"Chemin: {os.path.abspath(self.audioPath)}")
-        print(f"Existe: {os.path.exists(self.audioPath)}")
-        return (audio, duration)
-
-    def play_sound(self):
-        if os.path.exists(self.audioPath):
-            try:
-                pygame.mixer.music.load(self.audioPath)
-                pygame.mixer.music.play()
-                print("✓ Audio chargé et lancé")
-                
-                self.wavHandler.Start(self.audioPath)
-                print("✓ WavHandler démarré pour lip sync")
-            except Exception as e:
-                print(f"✗ Erreur: {e}")
-        else:
-            print(f"✗ Fichier introuvable!")
-            wav_files = [f for f in os.listdir('.') if f.endswith('.wav')]
-            print(f"Fichiers WAV trouvés: {wav_files}")
+        print("- R: Réinitialiser")
+        print("\nAPI externe:")
+        print("  Live2DViewer.send_text('texte')")
+        print("  Live2DViewer.send_emotion_direct('texte', 'f01')")
+        print(f"\nExpressions: {self.expressions}")
+        print("==========================================")
 
     def _load_model(self) -> None:
         """Load and configure the Live2D model."""
@@ -352,127 +318,110 @@ class Live2DViewer:
         
         if self.expressions:
             self.model.AddExpression(self.expressions[0])
-            print(f"Expression initiale: {self.expressions[0]}")
 
         self.model.Resize(self.config.width, self.config.height)
         self.model.SetAutoBlinkEnable(True)
-        self.model.SetAutoBreathEnable(False)  # Désactivé pour éviter conflits
+        self.model.SetAutoBreathEnable(False)
         
         self.part_ids = self.model.GetPartIds()
-        
-        self._log_model_info()
-        
-        # 🔥 CORRECTION PRINCIPALE : Enregistrer les callbacks !
-        print("\n🔧 Enregistrement des callbacks de motion...")
-        self.model.StartRandomMotion(
-            "TapBody", 
-            300, 
-            self.on_start_motion_callback,  # ← START callback
-            self.on_finish_motion_callback   # ← FINISH callback
-        )
-        print("✓ Callbacks enregistrés\n")
 
-    def _log_model_info(self) -> None:
-        """Log model parameters and information."""
-        print(f"Canvas size: {self.model.GetCanvasSize()}")
-        print(f"Canvas size (pixels): {self.model.GetCanvasSizePixel()}")
-        print(f"Pixels per unit: {self.model.GetPixelsPerUnit()}")
-        print(f"Part count: {len(self.part_ids)}")
-        print(f"Parameter count: {self.model.GetParameterCount()}")
-
-    def _check_threading_inputs(self) -> None:
-        """Check for inputs from all sources (optimized)."""
-        # Vérifier la queue externe (prioritaire)
-        processed_count = 0
-        max_per_frame = 3
-        
-        while processed_count < max_per_frame:
-            try:
-                data = self._external_queue.get_nowait()
-                processed_count += 1
-                
-                if isinstance(data, dict) and data.get('direct'):
-                    emotion_id = data.get('emotion_id')
-                    if emotion_id:
-                        print(f"[Main] Emotion directe reçue: '{emotion_id}'")
-                        self._apply_expression_fast(emotion_id, priority=True)
-                    continue
-                
-                if isinstance(data, dict):
-                    text = data.get('text')
-                    priority = data.get('priority', False)
-                    if text:
-                        print(f"[Main] Texte externe reçu: '{text}' (priority={priority})")
-                        self.emotion_processor.submit_text(text)
-                else:
-                    print(f"[Main] Texte externe reçu: '{data}'")
-                    self.emotion_processor.submit_text(data)
-                    
-            except queue.Empty:
-                break
-        
-        # Vérifier les résultats du processeur d'émotions
-        result = self.emotion_processor.get_result()
-        if result:
-            self._handle_emotion_result(result)
-
-    def _handle_emotion_result(self, result: dict) -> None:
-        """Handle emotion processing result (optimized)."""
-        if not result['success']:
-            print(f"[Main] Échec du traitement pour '{result['text']}': {result.get('error', 'Unknown')}")
+    def _check_inputs(self) -> None:
+        """Vérifie les inputs de la queue externe."""
+        # Ne traiter de nouvelles requêtes que si rien n'est en cours de lecture
+        if self.is_playing:
             return
-
-        text = result['text']
-        emotion_id = result['emotion_id']
-
-        print(f"[Main] Résultat reçu pour '{text}': {emotion_id}")
-
-        # Lecture du TTS — aucune restriction
+        
         try:
-            self.audio_tts, self.duration_last_tts = self.make_sound(text)
-        except Exception as e:
-            print(f"[Main] Erreur lors du play_sound: {e}")
-
-        # Application d’une expression avec son propre cooldown interne
-        if emotion_id and emotion_id in self.expressions:
-            self._apply_expression_fast(emotion_id, priority=False)
-        else:
-            print(f"[Main] Expression '{emotion_id}' non disponible")
-            if emotion_id:
-                print(f"       Expressions disponibles: {self.expressions}")
-
-    def _apply_expression_fast(self, expression_id: str, priority: bool = False) -> bool:
-        """
-        Appliquer une expression avec durée visible et cooldown optimisé.
-        """
-        current_time = time.time()
-        cooldown = self.external_expression_cooldown if priority else self.expression_cooldown
-        expression_duration = 1.5  # durée pendant laquelle l'expression reste affichée (secondes)
-
-        # Empêcher un spam d'expressions trop rapprochées
-        if current_time - self.last_expression_time < cooldown:
-            remaining = cooldown - (current_time - self.last_expression_time)
-            print(f"[Main] Cooldown actif: attendez {remaining:.2f}s avant de rejouer une expression")
-        else:
-            try:
-                self.model.ResetExpressions()
-                self.model.AddExpression(expression_id)
-
-                self.play_sound()
+            data = self._external_queue.get_nowait()
+            
+            text = data.get('text')
+            emotion_id = data.get('emotion_id')
+            priority = data.get('priority', False)
+            
+            if text:
+                print(f"[Main] Nouvelle requête: '{text}'")
+                self.tts_processor.submit_request(text, emotion_id, priority)
                 
-                self.last_expression_time = current_time
-                print(f"[Main] Expression appliquée: {expression_id}")
+        except queue.Empty:
+            pass
 
-                # Maintenir l'expression pendant un certain temps, puis reset
-                threading.Timer(expression_duration, self.model.ResetExpressions).start()
+    def _check_tts_results(self) -> None:
+        """Vérifie les résultats du processeur TTS."""
+        # Ne récupérer un résultat que si rien n'est en cours
+        if self.is_playing:
+            return
+        
+        result = self.tts_processor.get_result()
+        if result and result['success']:
+            self._start_playback(result)
 
-            except Exception as e:
-                print(f"[Main] Erreur lors de l'application de l'expression: {e}")
+    def _start_playback(self, result: dict) -> None:
+        """Démarre la lecture audio + expression."""
+        audio_path = result['audio_path']
+        emotion_id = result['emotion_id']
+        duration = result['duration']
+        
+        print(f"[Main] Démarrage: audio={audio_path}, émotion={emotion_id}, durée={duration:.2f}s")
+        
+        try:
+            # Charger et jouer l'audio
+            pygame.mixer.music.load(audio_path)
+            pygame.mixer.music.play()
+            
+            # Démarrer le lip sync
+            self.wavHandler.Start(audio_path)
+            
+            # Appliquer l'expression
+            if emotion_id and emotion_id in self.expressions:
+                self.model.ResetExpressions()
+                self.model.AddExpression(emotion_id)
+                print(f"[Main] Expression appliquée: {emotion_id}")
+            
+            # Enregistrer l'état
+            self.current_audio_path = audio_path
+            self.current_emotion_id = emotion_id
+            self.audio_start_time = time.time()
+            self.audio_duration = duration
+            self.is_playing = True
+            
+        except Exception as e:
+            print(f"[Main] Erreur lors du démarrage: {e}")
 
+    def _update_playback(self) -> None:
+        """Met à jour l'état de lecture et reset l'expression quand terminé."""
+        if not self.is_playing:
+            return
+        
+        # Vérifier si l'audio est toujours en cours
+        audio_playing = pygame.mixer.music.get_busy()
+        
+        # Vérifier si la durée est dépassée
+        elapsed = time.time() - self.audio_start_time
+        duration_exceeded = elapsed > self.audio_duration + 0.5  # Marge de 0.5s
+        
+        if not audio_playing or duration_exceeded:
+            print(f"[Main] Lecture terminée (elapsed={elapsed:.2f}s)")
+            
+            # Reset l'expression
+            self.model.ResetExpressions()
+            print(f"[Main] Expression '{self.current_emotion_id}' retirée")
+            
+            # Reset l'état
+            self.current_audio_path = None
+            self.current_emotion_id = None
+            self.audio_start_time = None
+            self.audio_duration = None
+            self.is_playing = False
 
-    def _apply_expression(self, expression_id: str) -> None:
-        """Apply an expression to the model (legacy method)."""
-        self._apply_expression_fast(expression_id, priority=False)
+    def update_wav_handler(self) -> None:
+        """Met à jour le lip sync."""
+        if self.wavHandler.Update():
+            rms_value = self.wavHandler.GetRms()
+            mouth_value = rms_value * self.lipSyncN
+            self.model.SetParameterValue(StandardParams.ParamMouthOpenY, mouth_value)
+        else:
+            if not pygame.mixer.music.get_busy():
+                self.model.SetParameterValue(StandardParams.ParamMouthOpenY, 0.0)
 
     def _handle_keyboard(self, key: int) -> None:
         """Handle keyboard input."""
@@ -488,10 +437,9 @@ class Live2DViewer:
         if key in transform_map:
             attr, delta = transform_map[key]
             setattr(self.transform, attr, getattr(self.transform, attr) + delta)
-            print(f"Transform: {attr} = {getattr(self.transform, attr):.2f}")
         
         elif key == pygame.K_SPACE:
-            self.play_sound("C'est un petit test comme ca")
+            self.send_text("Bonjour le monde!")
         
         elif key == pygame.K_r:
             self._reset_model()
@@ -512,26 +460,18 @@ class Live2DViewer:
             return
         
         self.current_expression_idx = (self.current_expression_idx + 1) % len(self.expressions)
-        self._apply_expression(self.expressions[self.current_expression_idx])
-        print(f"Expression cyclée: {self.expressions[self.current_expression_idx]}")
+        expr = self.expressions[self.current_expression_idx]
+        self.model.ResetExpressions()
+        self.model.AddExpression(expr)
+        print(f"Expression: {expr}")
 
     def _handle_mouse_motion(self, pos: tuple[int, int]) -> None:
-        """Handle mouse motion for dragging and part highlighting."""
+        """Handle mouse motion."""
         self.model.Drag(*pos)
-        self._update_highlighted_part(pos)
-
-    def _update_highlighted_part(self, pos: tuple[int, int]) -> None:
-        """Update the highlighted part based on mouse position."""
-        if self.highlighted_part_id:
-            pidx = self.part_ids.index(self.highlighted_part_id)
-            self.model.SetPartOpacity(pidx, 1.0)
-            self.model.SetPartMultiplyColor(pidx, 1.0, 1.0, 1.0, 1.0)
         
-        hit_parts = self.model.HitPart(*pos, False)
-        self.highlighted_part_id = hit_parts[0] if hit_parts else None
-
+        
     def _apply_transformations(self) -> None:
-        """Apply all transformations to the model."""
+        """Apply transformations."""
         self.transform.rotation += self.transform.rotation_speed
         rotation_deg = math.sin(self.transform.rotation) * self.transform.rotation_amplitude
         
@@ -539,17 +479,61 @@ class Live2DViewer:
         self.model.SetOffset(self.transform.dx, self.transform.dy)
         self.model.SetScale(self.transform.scale)
 
-    def _render_highlighted_part(self) -> None:
-        """Render the highlighted part with visual feedback."""
-        if not self.highlighted_part_id:
-            return
+
+    def _render_ai_label(self) -> None:
+        """Affiche le label 'AI' en bas à droite avec OpenGL."""
+        from OpenGL.GL import glMatrixMode, glLoadIdentity, glOrtho, GL_PROJECTION, GL_MODELVIEW
+        from OpenGL.GL import glEnable, glDisable, glBlendFunc, GL_BLEND, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA
+        from OpenGL.GL import glColor4f, glBegin, glEnd, glVertex2f, GL_QUADS
         
-        pidx = self.part_ids.index(self.highlighted_part_id)
-        self.model.SetPartOpacity(pidx, 0.5)
-        self.model.SetPartMultiplyColor(pidx, 0.0, 0.0, 1.0, 0.9)
+        # Passer en mode 2D
+        glMatrixMode(GL_PROJECTION)
+        glLoadIdentity()
+        glOrtho(0, self.config.width, self.config.height, 0, -1, 1)
+        glMatrixMode(GL_MODELVIEW)
+        glLoadIdentity()
+        
+        # Activer le blending
+        glEnable(GL_BLEND)
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+        
+        # Position en bas à droite
+        padding = 10
+        box_width = 60
+        box_height = 40
+        x = self.config.width - box_width - padding
+        y = self.config.height - box_height - padding
+        
+        # Dessiner un rectangle semi-transparent noir
+        glColor4f(0.0, 0.0, 0.0, 0.7)
+        glBegin(GL_QUADS)
+        glVertex2f(x, y)
+        glVertex2f(x + box_width, y)
+        glVertex2f(x + box_width, y + box_height)
+        glVertex2f(x, y + box_height)
+        glEnd()
+        
+        # Dessiner le texte "AI" sur la surface pygame
+        self.overlay_surface.fill((0, 0, 0, 0))
+        text_x = x + (box_width - self.ai_text_surface.get_width()) // 2
+        text_y = y + (box_height - self.ai_text_surface.get_height()) // 2
+        
+        # Utiliser pygame pour le texte
+        import pygame
+        from OpenGL.GL import glRasterPos2f, glDrawPixels, GL_RGBA, GL_UNSIGNED_BYTE
+        
+        # Créer une petite surface pour le texte
+        text_surf = self.font.render("AI", True, (255, 255, 255))
+        text_data = pygame.image.tostring(text_surf, "RGBA", True)
+        
+        glRasterPos2f(text_x, text_y + text_surf.get_height())
+        glDrawPixels(text_surf.get_width(), text_surf.get_height(), 
+                     GL_RGBA, GL_UNSIGNED_BYTE, text_data)
+        
+        glDisable(GL_BLEND)
 
     def _process_events(self) -> None:
-        """Process all pygame events."""
+        """Process pygame events."""
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 self.running = False
@@ -566,15 +550,16 @@ class Live2DViewer:
         self.running = True
         
         print("\n[Main] Boucle principale démarrée")
-        print("[Main] Prêt à recevoir des inputs...")
-        
-        frame_count = 0
         
         while self.running:
-            frame_count += 1
+            # Vérifier les inputs externes
+            self._check_inputs()
             
-            # Vérifier les inputs des threads
-            self._check_threading_inputs()
+            # Vérifier les résultats TTS
+            self._check_tts_results()
+            
+            # Mettre à jour l'état de lecture
+            self._update_playback()
             
             # Traiter les événements pygame
             self._process_events()
@@ -585,26 +570,30 @@ class Live2DViewer:
             # Appliquer les transformations
             self._apply_transformations()
             
+            # Mettre à jour le lip sync
             self.update_wav_handler()
             
             # Mise à jour du modèle
             self.model.Update()
-            self._render_highlighted_part()
             
             # Rendu
             live2d.clearBuffer(*self.config.background_color)
             self.model.Draw()
             
+            # Afficher le label "AI"
+            self._render_ai_label()
+            
             pygame.display.flip()
             pygame.time.wait(self.config.frame_delay)
         
-        print(f"[Main] Boucle principale terminée ({frame_count} frames)")
+        print("[Main] Boucle principale terminée")
 
     def cleanup(self) -> None:
-        """Cleanup resources and stop threads."""
+        """Cleanup resources."""
         print("[Main] Nettoyage en cours...")
         
-        self.emotion_processor.stop()
+        self.tts_processor.stop()
+        
         with self._lock:
             Live2DViewer._instance = None
             Live2DViewer._initialized.clear()
@@ -614,12 +603,12 @@ class Live2DViewer:
         try:
             live2d.dispose()
         except Exception as e:
-            print(f"[Main] Erreur lors du dispose de Live2D: {e}")
+            print(f"[Main] Erreur dispose: {e}")
         
         try:
             pygame.quit()
         except Exception as e:
-            print(f"[Main] Erreur lors du quit de pygame: {e}")
+            print(f"[Main] Erreur quit: {e}")
         
         print("[Main] Nettoyage terminé")
 
@@ -633,9 +622,9 @@ def main():
         viewer.initialize()
         viewer.run()
     except KeyboardInterrupt:
-        print("\n[Main] Arrêt demandé par l'utilisateur (Ctrl+C)...")
+        print("\n[Main] Ctrl+C détecté")
     except Exception as e:
-        print(f"[Main] Erreur fatale: {e}")
+        print(f"[Main] Erreur: {e}")
         import traceback
         traceback.print_exc()
     finally:

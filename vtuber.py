@@ -12,6 +12,27 @@ _viewer_thread = None
 
 _toxicity_evaluator = MultilingualToxicityEvaluator(model_type="multilingual")
 
+
+import os
+import time
+
+def _del_old_wav(dossier):
+    maintenant = time.time()
+    quinzaine_min = 15 * 60
+
+    for nom_fichier in os.listdir(dossier):
+        if nom_fichier.lower().endswith(".wav"):
+            chemin_fichier = os.path.join(dossier, nom_fichier)
+            if os.path.isfile(chemin_fichier):
+                age_fichier = maintenant - os.path.getmtime(chemin_fichier)
+                if age_fichier > quinzaine_min:
+                    try:
+                        os.remove(chemin_fichier)
+                        print(f"supprimé : {chemin_fichier}")
+                    except Exception as e:
+                        print(f"Erreur lors de la suppression de {chemin_fichier} : {e}")
+
+
 def init(model_name: str = "mao", timeout: float = 15.0):
     """
     Initialiser le VTuber en arrière-plan.
@@ -50,6 +71,7 @@ def send_text(texts: str):
     Args:
         texts: Texte pour l'analyse émotionnelle
     """
+    _del_old_wav(os.getcwd())
     
     if not _initialized:
         print("[VTuber] Erreur: Appelez vtuber.init() d'abord!")
@@ -64,10 +86,6 @@ def send_text(texts: str):
             texts = [partie.strip() for element in texts for partie in element.split(',')]
 
             for text in texts:
-                length = max(len(text), 1)
-                delay = 0.7 * log(length + 1) + 0.5
-                sleep(delay)
-
                 Live2DViewer.send_text(text)
                 add_new_memory(text)
             return True
