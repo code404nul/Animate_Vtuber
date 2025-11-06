@@ -61,11 +61,11 @@ def send_text(texts: str):
             return False
         else:
             texts = split_sentence(texts)
+            texts = [partie.strip() for element in texts for partie in element.split(',')]
 
             for text in texts:
-                # Durée logarithmique en fonction de la longueur du texte
                 length = max(len(text), 1)
-                delay = 0.7 * log(length + 1) + 0.5  # ajustable
+                delay = 0.7 * log(length + 1) + 0.5
                 sleep(delay)
 
                 Live2DViewer.send_text(text)
