@@ -1,6 +1,6 @@
 ---
 
-# 🧠 H.A.AI.E — Help Against Anxiety (Experimental)
+# 🧠 H.A.AI.E — Help Against Anxiety (Experimental) / WAICY project
 
 ### Local Emotional Companion — Private • Lightweight • Humanized
 
