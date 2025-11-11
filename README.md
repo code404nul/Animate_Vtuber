@@ -100,6 +100,10 @@ pip install -r requirements.txt
 python test.py
 ```
 
+### 5. Download models 
+
+[link of the drive](https://drive.google.com/drive/folders/1xmPeIi9dzqERD8u6cl4wBQzBhvR0C0Oh?usp=sharing)
+
 ---
 
 ## 🧠 Architecture Summary
