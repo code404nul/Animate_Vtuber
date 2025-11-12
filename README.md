@@ -1,6 +1,6 @@
 ---
 
-# 🧠 H.A.AI.E — Help Against Anxiety (Experimental)
+# 🧠 H.A.AI.E — Help Against Anxiety (Experimental) / WAICY project
 
 ### Local Emotional Companion — Private • Lightweight • Humanized
 
@@ -28,7 +28,8 @@ It’s *not* meant to replace human interaction, but to help users **relearn com
 
 ✅ Facial and expression reactions based on text
 ⚙️ Live2D model integrated
-❌ No voice or LLM integration yet
+✅ Voice is integreted 
+❌ No LLM integration yet
 🚧 `main.py` is the current entry point for testing
 
 ---
@@ -99,6 +100,10 @@ pip install -r requirements.txt
 python test.py
 ```
 
+### 5. Download models 
+
+[link of the drive](https://drive.google.com/drive/folders/1xmPeIi9dzqERD8u6cl4wBQzBhvR0C0Oh?usp=sharing)
+
 ---
 
 ## 🧠 Architecture Summary
@@ -141,3 +146,21 @@ Contact: perso[aroba]archibarbu[dot]com
 ---
 
 #### Please check license before use it in commercial project.
+
+#### Attention : 
+
+
+Ce projet n'a pas été validé par une organisation médicale.
+Il n'a aucune prétention thérapeutique et ne pose aucun 
+diagnostic ni traitement. 
+
+Données stockées localement uniquement. (Les emotions peuvent etre stocker, pas les conversations)
+
+
+#### Disclaimer :
+
+This project has not been validated by any medical organization.
+It makes no therapeutic claims and does not provide diagnosis 
+or treatment.
+
+Data stored locally only. (Onlu emotions can be stored, no any conversations)
