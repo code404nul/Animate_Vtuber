@@ -1,10 +1,8 @@
 from utils.model_viewer import main, Live2DViewer
 from utils.toxic_eval import MultilingualToxicityEvaluator
 from utils import split_sentence
-from long_term_memory.memory_manager import *
-from time import sleep
-from math import log
-
+import os
+import time
 import threading
 
 _initialized = False
@@ -13,19 +11,16 @@ _viewer_thread = None
 _toxicity_evaluator = MultilingualToxicityEvaluator(model_type="multilingual")
 
 
-import os
-import time
-
 def _del_old_wav(dossier):
     maintenant = time.time()
-    quinzaine_min = 15 * 60
+    delete_before = 60 # secondes
 
     for nom_fichier in os.listdir(dossier):
         if nom_fichier.lower().endswith(".wav"):
             chemin_fichier = os.path.join(dossier, nom_fichier)
             if os.path.isfile(chemin_fichier):
                 age_fichier = maintenant - os.path.getmtime(chemin_fichier)
-                if age_fichier > quinzaine_min:
+                if age_fichier > delete_before:
                     try:
                         os.remove(chemin_fichier)
                         print(f"supprimé : {chemin_fichier}")
@@ -87,7 +82,6 @@ def send_text(texts: str):
 
             for text in texts:
                 Live2DViewer.send_text(text)
-                add_new_memory(text)
             return True
     except Exception as e:
         print(f"[VTuber] Erreur lors de l'envoi du texte: {e}")

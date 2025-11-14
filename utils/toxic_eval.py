@@ -1,6 +1,11 @@
 from detoxify import Detoxify
 from typing import Dict, List, Union
 import pandas as pd
+import transformers
+import os
+# Force l'utilisation du cache local (pas de téléchargement)
+os.environ['HF_HUB_OFFLINE'] = '1'
+os.environ['TRANSFORMERS_OFFLINE'] = '1'
 
 
 class MultilingualToxicityEvaluator:
@@ -10,33 +15,61 @@ class MultilingualToxicityEvaluator:
     - unbiased: same categories, trained to reduce bias
     - multilingual: supports 7 languages (English, French, Spanish, Italian, Portuguese, Turkish, Russian)
     """
+import os
+import torch
+from transformers import AutoModelForSequenceClassification, AutoTokenizer
+from typing import Dict, List, Union
+import pandas as pd
+
+
+class MultilingualToxicityEvaluator:
+    """
+    Évaluateur de toxicité multilingue avec support de modèles locaux.
+    Supporte 7 langues: English, French, Spanish, Italian, Portuguese, Turkish, Russian
+    """
     
     def __init__(self, model_type: str = "multilingual"):
         """
         Initialize the toxicity evaluator.
         
         Args:
-            model_type: Type of model to use. Options:
-                - "multilingual" (default) - supports 7 languages
-                - "original" - original English model
-                - "unbiased" - debiased English model
-                - "original-small" - smaller/faster English model
-                - "unbiased-small" - smaller/faster debiased model
+            model_type: Type of model to use (actuellement seul "multilingual" est supporté)
         """
-        self.model_type = model_type
-        print(f"Loading Detoxify model: {model_type}")
         
-        self.model = Detoxify(model_type)
+        
+        original_from_pretrained = transformers.AutoModel.from_pretrained
+
+        def offline_from_pretrained(*args, **kwargs):
+            kwargs['local_files_only'] = True
+            return original_from_pretrained(*args, **kwargs)
+
+        transformers.AutoModel.from_pretrained = offline_from_pretrained
+
+        self.model_type = model_type
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        
+        self.model_type = model_type
+        
+        os.environ['HF_HUB_OFFLINE'] = '1'
+        os.environ['TRANSFORMERS_OFFLINE'] = '1'
+        print("Running in OFFLINE mode - using cached models only")
+        
+        print(f"Loading Detoxify model: {model_type}")
+        try:
+            self.model = Detoxify(model_type)
+            print("Model loaded successfully!")
+        except Exception as e:
+            print(f"Error loading model: {e}")
+            print("Make sure the model is downloaded first while online.")
+            raise
+        
+        # Catégories de toxicité
+        self.categories = ["toxicity", "severe_toxicity", "obscene", 
+                          "threat", "insult", "identity_attack", "sexual_explicit"]
         
         print("Model loaded successfully!")
-        
-        if model_type == "multilingual":
-            self.categories = ["toxicity", "severe_toxicity", "obscene", 
-                             "threat", "insult", "identity_attack", "sexual_explicit"]
-        else:
-            self.categories = ["toxicity", "severe_toxicity", "obscene", 
-                             "threat", "insult", "identity_attack"]
-    
+
+
     def evaluate(self, text: Union[str, List[str]], threshold: float = 0.5) -> Union[Dict, List[Dict]]:
         is_single = isinstance(text, str)
         texts = [text] if is_single else text
